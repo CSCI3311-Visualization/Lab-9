@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Lab 9</title>
+    <meta charset="utf-8" />
+
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.12.2"></script>
+
+    <style media="screen">
+      /* Add space between Vega-Embed links  */
+      .vega-actions a {
+        margin-right: 5px;
+      }
+
+      #link {
+          margin : 2%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>COVID 19 Tracking visualization</h1>
+    <div id="link">
+        <a  href = "index.html">Original Bar Visualization</a>
+    </div>
+
+    <!-- Container for the visualization -->
+    <div id="vis"></div>
+
+    <script>
+      // Assign the specification to a local variable vlSpec.
+      var vlSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+            "description": "Lab 9 : Vega - Lite",
+            
+            "data" : {
+                "url" : "https://api.covidtracking.com/v1/states/current.csv"
+            },
+            "vconcat" : [
+                {
+                "width": 800,
+                "height": 300,
+                "mark": {"type": "point"},
+                "selection": {
+                    "brush":{"type":"interval"} 
+                },
+                "encoding": {
+                    "x": {
+                    "field": "positive",
+                    "type": "quantitative",
+                    "scale": {"type": "linear", "zero": false}
+                    },
+                    "y": {
+                    "field": "death",
+                    "type": "quantitative",
+                    "scale": {"zero": false}
+                    },
+                    "tooltip": { 
+                    "field" : "state"
+                    },
+                    "stroke": {
+                    "field": "dataQualityGrade",
+                    "type": "nominal"
+                    }  
+                }
+                }, 
+                {
+                
+                "repeat" : ["hospitalizedCumulative", "recovered"],
+                
+                "spec" : {
+                    "width": 400,
+                    "height": 150,
+                    "mark" : "geoshape",
+                
+                    "transform": [{
+                    "lookup": "fips",
+                    "from": {
+                        "data": {
+                            "url": "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+                            "format": {
+                            "type": "topojson",
+                            "feature": "states"
+                            }
+                        },
+                        "key": "id"
+                        },
+                    "as": "geo"
+                    }
+                    ],
+                    "projection": {"type": "albersUsa"},
+                    
+                    "encoding" : {
+                    "x" : { "field" : "state" , "type" : "nominal" },
+                    "y":{
+                        "field": {"repeat":"repeat"},
+                        "type":"quantitative"
+                    },
+                    "shape": {
+                        "field": "geo",
+                        "type": "geojson"
+                    },
+                    "color": {
+                        "condition":{ 
+                            "selection":"brush", 
+                            "field": {"repeat":"repeat"},
+                            "type": "quantitative"
+                        },
+                        "value":"grey" 
+                        }
+                    }
+                }
+                }
+            ]
+            }
+     // Embed the visualization in the container with id `vis`
+      vegaEmbed('#vis', vlSpec);
+    </script>
+  </body>
+</html>
